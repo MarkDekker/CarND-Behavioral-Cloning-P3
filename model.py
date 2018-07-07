@@ -55,8 +55,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
             log_indices             = [0,     1,     2,     0,     1,     2]
             flip_states             = [False, False, False, True,  True,  True]
             measurement_adjustments = [0,     1,     -1,    0,     1,     -1]
-            measurement_adjustments = /
-              [x * correction for x in measurement_adjustments]
+            measurement_adjustments = [x * correction for x in measurement_adjustments]
 
             for index, log_index in enumerate(log_indices):
               if use_data[index]:
@@ -120,7 +119,7 @@ cur_model = image_preprocessing(cur_model, image_resolution=[160,320])
 cur_model = test_nn_model(cur_model)
 cur_model.compile(loss='mse', optimizer='adam')
 
-model.fit_generator(train_generator, steps_per_epoch=n_batches, 
+cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
                     validation_data=validation_generator,
                     validation_steps=n_val_batches, epochs=7, verbose=1)
 
