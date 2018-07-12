@@ -7,7 +7,7 @@ import math
 from sklearn.model_selection import train_test_split
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Conv2D
 
 #----------------------------------------------------------------------------#
 #                            Image Import Pipeline                           #
@@ -41,7 +41,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
 
   #  -------------------------- Main Function Body --------------------------- #
 
-  correction = 0.4 #Angle correction for off center cameras
+  correction = 0.04 #Angle correction for off center cameras
   num_images = len(image_log)
 
   while 1: # Do not let the generator terminate
@@ -51,7 +51,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
             all_images       = []
             all_measurements = []
 
-            use_data                = [True,  False, False, False, False, False]
+            use_data                = [True,  False, False, True, False, False]
             log_indices             = [0,     1,     2,     0,     1,     2]
             flip_states             = [False, False, False, True,  True,  True]
             measurement_adjustments = [0,     1,     -1,    0,     1,     -1]
@@ -67,7 +67,6 @@ def get_training_data(image_log, training_data_path, batch_size=22):
                 all_images.extend(images)
                 all_measurements.extend(measurements)
 
-            # trim image to only see section with road
             X_train = np.array(all_images)
             y_train = np.array(all_measurements)
             yield sklearn.utils.shuffle(X_train, y_train)
@@ -82,12 +81,24 @@ def test_nn_model(model):
 
   return model
 
-def image_preprocessing(model, image_resolution):
-  model.add(Cropping2D(cropping=((70,25), (0,0)), input_shape=(3,160,320)))
-  model.add(
-    Lambda(lambda x: x/255.0 - 0.5, 
-    input_shape=(image_resolution[0], image_resolution[1], 3)))
-  
+def nvidia_model(model, input_shape):
+  model.add(Conv2D(24,(5,5), strides=(2,2), activation='relu', 
+            input_shape=(input_shape[0], input_shape[1], 3)))
+  model.add(Conv2D(48,(5,5), strides=(2,2), activation='relu'))
+  model.add(Conv2D(64,(3,3), activation='relu'))
+  model.add(Conv2D(64,(3,3), activation='relu'))
+  model.add(Flatten())
+  model.add(Dense(100))
+  model.add(Dense(50))
+  model.add(Dense(10))
+  model.add(Dense(1))
+
+  return model
+
+def image_preprocessing(model, image_resolution, crop=(0, 0, 0, 0)):
+  model.add(Lambda(lambda x: x/255.0 - 0.5, 
+            input_shape=(160,320,3)))
+  model.add(Cropping2D(cropping=((crop[0],crop[1]), (crop[2],crop[3]))))
 
   return model
 
@@ -97,7 +108,9 @@ def image_preprocessing(model, image_resolution):
 
 # Import images
 rows = []
-training_data_path = './data/training_set/'
+training_data_path = './data/complete_set/'
+crop = (70, 40, 0, 0)   #(top, bottom, left, right)
+image_resolution = [160,320]
 
 with open(training_data_path  + 'driving_log.csv') as csvfile:
   reader = csv.reader(csvfile)
@@ -115,12 +128,16 @@ validation_generator = get_training_data(validation_samples, training_data_path,
 # Set up training pipeline
 cur_model = Sequential()
 
-cur_model = image_preprocessing(cur_model, image_resolution=[160,320])
-cur_model = test_nn_model(cur_model)
+cur_model = image_preprocessing(cur_model, image_resolution=[160,320], crop=crop)
+new_shape = [image_resolution[0] - (crop[0]+crop[1]), image_resolution[1] - (crop[2]+crop[3])]
+cur_model = nvidia_model(cur_model, new_shape)
+
+print(cur_model.summary())
+
 cur_model.compile(loss='mse', optimizer='adam')
 
 cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
                     validation_data=validation_generator,
-                    validation_steps=n_val_batches, epochs=7, verbose=1)
+                    validation_steps=n_val_batches, epochs=2, verbose=1)
 
 cur_model.save('model.h5')
