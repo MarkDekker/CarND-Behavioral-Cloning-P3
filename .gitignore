@@ -2,3 +2,4 @@ examples/
 data/
 DrivingSimulator.app/
 saved_models/
+model.h5

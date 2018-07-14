@@ -6,8 +6,9 @@ import sklearn
 import math
 from sklearn.model_selection import train_test_split
 
+from keras import optimizers
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D, Conv2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Conv2D, Dropout
 
 #----------------------------------------------------------------------------#
 #                            Image Import Pipeline                           #
@@ -41,7 +42,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
 
   #  -------------------------- Main Function Body --------------------------- #
 
-  correction = 0.04 #Angle correction for off center cameras
+  correction = 0.02 #Angle correction for off center cameras
   num_images = len(image_log)
 
   while 1: # Do not let the generator terminate
@@ -51,7 +52,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
             all_images       = []
             all_measurements = []
 
-            use_data                = [True,  False, False, True, False, False]
+            use_data                = [False,  True, True, False, True, True]
             log_indices             = [0,     1,     2,     0,     1,     2]
             flip_states             = [False, False, False, True,  True,  True]
             measurement_adjustments = [0,     1,     -1,    0,     1,     -1]
@@ -88,8 +89,11 @@ def nvidia_model(model, input_shape):
   model.add(Conv2D(64,(3,3), activation='relu'))
   model.add(Conv2D(64,(3,3), activation='relu'))
   model.add(Flatten())
+  #model.add(Dropout(0.2))
   model.add(Dense(100))
+  #model.add(Dropout(0.2))
   model.add(Dense(50))
+  #model.add(Dropout(0.2))
   model.add(Dense(10))
   model.add(Dense(1))
 
@@ -134,10 +138,11 @@ cur_model = nvidia_model(cur_model, new_shape)
 
 print(cur_model.summary())
 
-cur_model.compile(loss='mse', optimizer='adam')
+adam = optimizers.Adam(lr=0.001, decay=1e-6)
+cur_model.compile(loss='mse', optimizer=adam)
 
 cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
                     validation_data=validation_generator,
-                    validation_steps=n_val_batches, epochs=2, verbose=1)
+                    validation_steps=n_val_batches, epochs=1, verbose=1)
 
 cur_model.save('model.h5')
