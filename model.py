@@ -42,7 +42,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
 
   #  -------------------------- Main Function Body --------------------------- #
 
-  correction = 0.02 #Angle correction for off center cameras
+  correction = 0.04 #Angle correction for off center cameras
   num_images = len(image_log)
 
   while 1: # Do not let the generator terminate
