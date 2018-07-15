@@ -18,7 +18,7 @@ def get_training_data(image_log, training_data_path, batch_size=22):
 
   def import_and_convert_RGB(image_file):
     image = cv2.imread(image_file, 3)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
   def get_training_set(log, image_index, measurement_adjustment=0.0, flip=False):
@@ -89,11 +89,11 @@ def nvidia_model(model, input_shape):
   model.add(Conv2D(64,(3,3), activation='relu'))
   model.add(Conv2D(64,(3,3), activation='relu'))
   model.add(Flatten())
-  #model.add(Dropout(0.2))
+  model.add(Dropout(0.2))
   model.add(Dense(100))
-  #model.add(Dropout(0.2))
+  model.add(Dropout(0.2))
   model.add(Dense(50))
-  #model.add(Dropout(0.2))
+  model.add(Dropout(0.2))
   model.add(Dense(10))
   model.add(Dense(1))
 
@@ -112,7 +112,7 @@ def image_preprocessing(model, image_resolution, crop=(0, 0, 0, 0)):
 
 # Import images
 rows = []
-training_data_path = './data/complete_set/'
+training_data_path = './data/complete_set_v2/'
 crop = (70, 40, 0, 0)   #(top, bottom, left, right)
 image_resolution = [160,320]
 
@@ -143,6 +143,6 @@ cur_model.compile(loss='mse', optimizer=adam)
 
 cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
                     validation_data=validation_generator,
-                    validation_steps=n_val_batches, epochs=1, verbose=1)
+                    validation_steps=n_val_batches, epochs=6, verbose=1)
 
 cur_model.save('model.h5')

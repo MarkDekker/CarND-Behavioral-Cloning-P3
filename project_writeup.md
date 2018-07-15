@@ -1,9 +1,5 @@
 # **Behavioral Cloning** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
 ---
 
 **Behavioral Cloning Project**
@@ -24,37 +20,57 @@ The goals / steps of this project are the following:
 [image4]: ./examples/placeholder_small.png "Recovery Image"
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
-
-## Rubric Points
-### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+[image7]: ./examples/placeholder_small.png "Flipped Image" 
 
 ---
-### Files Submitted & Code Quality
+## Files Submitted
 
-#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
+### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
-* writeup_report.md or writeup_report.pdf summarizing the results
+* project_writeup.md
 
-#### 2. Submission includes functional code
+The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
 ```
 
-#### 3. Submission code is usable and readable
+## Model Architecture and Training Strategy
 
-The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+### Model Architecture
 
-### Model Architecture and Training Strategy
+MThis project employs the end-to-end deep neural network proposed by NVIDIA. Architecture consists of five convolutional layers and another three fully connected layers. The only real change made to the original model  is that the RGB colour space was used as opposed to the Y’UV colour space. This is done because the driving simulator output is in RGB, yet I believe that the Y’UV colour space would have been more appropriate.  It has the advantage of having one channel that is essentially a grayscale image while the other two channels define the colour of the image. Intuitively this feels like it would make it easier for the network to interpret the images.
 
-#### 1. An appropriate model architecture has been employed
+A more detailed description of the model architecture can be found in the table below:
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+
+|Layer (type)                | Output Shape             | Param #   
+|:--------------------------:|:-------------------------:|:-------:|
+lambda_1 (Lambda)            |(None, 160, 320, 3)       |0       
+cropping2d_1 (Cropping2D)    |(None, 50, 320, 3)        |0         
+conv2d_1 (Conv2D)            |(None, 23, 158, 24)       |1824      
+conv2d_2 (Conv2D)            |(None, 10, 77, 48)        |28848    
+conv2d_3 (Conv2D)            |(None, 8, 75, 64)         |27712    
+conv2d_4 (Conv2D)            |(None, 6, 73, 64)         |36928  
+flatten_1 (Flatten)          |(None, 28032)             |0       
+dropout_1 (Dropout)          |(None, 28032)             |0        
+dense_1 (Dense)              |(None, 100)               |2803300   
+dropout_2 (Dropout)          |(None, 100)               |0        
+dense_2 (Dense)              |(None, 50)                |5050      
+dropout_3 (Dropout)          |(None, 50)                |0         
+dense_3 (Dense)              |(None, 10)                |510       
+dense_4 (Dense)              |(None, 1)                 |11      
+
+_________________________________________________________________
+- Total params: 2,904,183
+- Trainable params: 2,904,183
+- Non-trainable params: 0
+_________________________________________________________________
 
 The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
 
