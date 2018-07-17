@@ -42,9 +42,9 @@ python drive.py model.h5
 
 ## Model Architecture and Training Strategy
 
-### Model Architecture
+### **Model Architecture**
 
-MThis project employs the end-to-end deep neural network proposed by NVIDIA. Architecture consists of five convolutional layers and another three fully connected layers. The only real change made to the original model  is that the RGB colour space was used as opposed to the Y’UV colour space. This is done because the driving simulator output is in RGB, yet I believe that the Y’UV colour space would have been more appropriate.  It has the advantage of having one channel that is essentially a grayscale image while the other two channels define the colour of the image. Intuitively this feels like it would make it easier for the network to interpret the images.
+This project employs the end-to-end deep neural network proposed by nVidia. Architecture consists of five convolutional layers and another three fully connected layers. The only real change made to the original model  is that the RGB colour space was used as opposed to the Y’UV colour space. This is done because the driving simulator output is in RGB, yet I believe that the Y’UV colour space would have been more appropriate.  It has the advantage of having one channel that is essentially a grayscale image while the other two channels define the colour of the image. Intuitively this feels like it would make it easier for the network to interpret the images.
 
 A more detailed description of the model architecture can be found in the table below:
 
@@ -72,74 +72,32 @@ _________________________________________________________________
 - Non-trainable params: 0
 _________________________________________________________________
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+The Keras lambda and cropping layers are used to preprocess the images prior to training.  The lambda layer normalises and centers the pixel values around 0, while the cropping layer reduces the image size by 70 pixels on tom and 40 pixels at the bottom.
 
-#### 2. Attempts to reduce overfitting in the model
+The convolutional layers include RELU activations to introduce nonlinearity.
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
+To reduce overfitting, a 20% dropout rate was added to the fully connected layers during training.
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+### **Training**
 
-#### 3. Model parameter tuning
+The model was trained and validated on different data sets to ensure that the model was not overfitting and finally it was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+The model used an adam optimizer with a learning rate decay of 1e-6.
 
-#### 4. Appropriate training data
+### **Training data**
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+The training data for this project comprises the original dataset provided by Udacity and an additional 2 forward laps, as well as a reverse lap of “Track 1”.  In addition to this, two further laps of Track 2 were recorded for training. The output of the simulator includes a centre, left and right image with the corresponding steering angle at that point in time.
 
-For details about how I created the training data, see the next section. 
+To make the most of the data it was decided to use the left and right images respectively as opposed to the centre image. Since the left and right images are off-centre a correction angle was applied to the measured steering angle. The appropriate magnitude for the correction was determined to be approximately 2.2 degrees by trial and error . The data was then augmented by flipping the images and the recorded steering angles. Unfortunately it was found that using the centre image in addition to these off-center images produced and reliable results so the centre images were not used during training.  Nevertheless, using this technique allowed us to quadruple the number of data points for training our model to 64 136.
 
-### Model Architecture and Training Strategy
+Using the left and right offset images with a correction angle for the steering has the advantage that it is not necessary to record recovery maneuvers. All of the data essentially represents a recovery condition.
 
-#### 1. Solution Design Approach
+### **Solution Design Approach**
 
-The overall strategy for deriving a model architecture was to ...
+It was felt that the above mentioned in nVidia network was more than adequate for this application given that it was proven for a similar application in a real world scenario, driving a physical autonomous car. 
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+This meant that the focus was placed on producing useful training data and ensuring good convergence for the model. 
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+Ultimately this proved to be a successful approach, with the model navigating “Track 1” and “Track 2” flawlessly after training for 5 epochs. 
 
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
-
-#### 2. Final Model Architecture
-
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
-
-#### 3. Creation of the Training Set & Training Process
-
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
-
-![alt text][image2]
-
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
-
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+Nevertheless, after adding training data for "Track 2", the overall loss of the model on the validation data increased twofold. This still highlights a weakness of this approach, where the model needs to be trained for each scenario to work effectively (winter days, desert highways, forest roads). If many different scenarios need to be covered with the same network, it is not expected that this current architecture will be sufficiently deep to work for all of them and it will likely need to become much larger.

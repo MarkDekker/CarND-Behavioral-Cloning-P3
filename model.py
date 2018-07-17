@@ -6,7 +6,7 @@ import sklearn
 import math
 from sklearn.model_selection import train_test_split
 
-from keras import optimizers
+from keras import optimizers, callbacks
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Cropping2D, Conv2D, Dropout
 
@@ -90,11 +90,11 @@ def nvidia_model(model, input_shape):
   model.add(Conv2D(64,(3,3), activation='relu'))
   model.add(Flatten())
   model.add(Dropout(0.2))
-  model.add(Dense(100))
+  model.add(Dense(100, activation='relu'))
   model.add(Dropout(0.2))
-  model.add(Dense(50))
+  model.add(Dense(50, activation='relu'))
   model.add(Dropout(0.2))
-  model.add(Dense(10))
+  model.add(Dense(10, activation='relu'))
   model.add(Dense(1))
 
   return model
@@ -141,8 +141,9 @@ print(cur_model.summary())
 adam = optimizers.Adam(lr=0.001, decay=1e-6)
 cur_model.compile(loss='mse', optimizer=adam)
 
-cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
-                    validation_data=validation_generator,
-                    validation_steps=n_val_batches, epochs=6, verbose=1)
+save_best_model = [callbacks.ModelCheckpoint('model.h5', monitor='val_loss', verbose=0, save_best_only=True)]
 
-cur_model.save('model.h5')
+cur_model.fit_generator(train_generator, steps_per_epoch=n_batches, 
+                      validation_data=validation_generator,
+                      validation_steps=n_val_batches, epochs=6, verbose=1,
+                      callbacks=save_best_model)
