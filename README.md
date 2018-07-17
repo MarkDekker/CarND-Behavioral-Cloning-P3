@@ -85,7 +85,7 @@ The model used an adam optimizer with a learning rate decay of 1e-6.
 
 ### **Training data**
 
-The training data for this project comprises the original dataset provided by Udacity and an additional 2 forward laps, as well as a reverse lap of “Track 1”.  In addition to this, two further laps of Track 2 were recorded for training. The output of the simulator includes a centre, left and right image with the corresponding steering angle at that point in time.
+The training data for this project comprises the original dataset provided by Udacity and an additional 2 forward laps, as well as a reverse lap of “Track 1”. In addition to this, two further laps of Track 2 were recorded for training. The output of the simulator includes a centre, left and right image with the corresponding steering angle at that point in time.
 
 To make the most of the data it was decided to use the left and right images respectively as opposed to the centre image. Since the left and right images are off-centre a correction angle was applied to the measured steering angle. The appropriate magnitude for the correction was determined to be approximately 2.2 degrees by trial and error . The data was then augmented by flipping the images and the recorded steering angles. Unfortunately it was found that using the centre image in addition to these off-center images produced and reliable results so the centre images were not used during training.  Nevertheless, using this technique allowed us to quadruple the number of data points for training our model to 64 136.
 
@@ -104,3 +104,8 @@ Ultimately, this proved to be a successful approach though, with the model navig
 Below is an example of the trend for the loss on the validation and training sets during training:
 
 !['Progression of loss after each epoch'][image3]
+
+Finally here are the laps driven in autonomous mode:
+
+- [track1_autonomous_drive.mp4](track1_autonomous_drive.mp4)
+- [track2_autonomous_drive.mp4](track2_autonomous_drive.mp4)
