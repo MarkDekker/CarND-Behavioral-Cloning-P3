@@ -3,3 +3,5 @@ data/
 DrivingSimulator.app/
 saved_models/
 model.h5
+track1_autonomous_drive/
+track2_autonomous_drive/
